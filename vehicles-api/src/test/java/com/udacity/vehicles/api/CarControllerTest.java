@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -20,6 +22,7 @@ import com.udacity.vehicles.domain.car.Details;
 import com.udacity.vehicles.domain.manufacturer.Manufacturer;
 import com.udacity.vehicles.service.CarService;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,6 +64,7 @@ public class CarControllerTest {
     /**
      * Creates pre-requisites for testing, such as an example car.
      */
+    private MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
     @Before
     public void setup() {
         Car car = getCar();
@@ -96,7 +100,11 @@ public class CarControllerTest {
          *   the whole list of vehicles. This should utilize the car from `getCar()`
          *   below (the vehicle will be the first in the list).
          */
-
+        this.createCar();
+        mvc.perform(get("/cars")).andExpect(status().isOk())
+                .andExpect(content()
+                        .contentType(contentType)).andExpect(content().json("{}"));
+        verify(carService, times(1)).list();
     }
 
     /**
@@ -109,6 +117,10 @@ public class CarControllerTest {
          * TODO: Add a test to check that the `get` method works by calling
          *   a vehicle by ID. This should utilize the car from `getCar()` below.
          */
+        this.createCar();
+        mvc.perform(get("/cars").param("id", "1")).andExpect(status().isOk())
+                .andExpect(content().contentType(contentType)).andExpect(content().json("{}"));
+        verify(carService, times(1)).findById(1L);
     }
 
     /**

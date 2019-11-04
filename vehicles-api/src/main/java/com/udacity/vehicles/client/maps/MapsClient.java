@@ -36,7 +36,7 @@ public class MapsClient {
             Address address = client
                     .get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/maps/")
+                            .path("http://localhost:9191/maps/")
                             .queryParam("lat", location.getLat())
                             .queryParam("lon", location.getLon())
                             .build()
