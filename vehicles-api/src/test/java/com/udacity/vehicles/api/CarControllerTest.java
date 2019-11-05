@@ -33,9 +33,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
  * Implements testing of the CarController class.
@@ -118,7 +120,7 @@ public class CarControllerTest {
          *   a vehicle by ID. This should utilize the car from `getCar()` below.
          */
         this.createCar();
-        mvc.perform(get("/cars").param("id", "1")).andExpect(status().isOk())
+        mvc.perform(get("/cars/1")).andExpect(status().isOk())
                 .andExpect(content().contentType(contentType)).andExpect(content().json("{}"));
         verify(carService, times(1)).findById(1L);
     }
@@ -134,6 +136,9 @@ public class CarControllerTest {
          *   when the `delete` method is called from the Car Controller. This
          *   should utilize the car from `getCar()` below.
          */
+        this.createCar();
+        mvc.perform(delete("/cars/1")).andExpect(status().is2xxSuccessful());
+        verify(carService, times(1)).delete(1L);
     }
 
     /**

@@ -20,7 +20,7 @@ public class MapsClient {
     private final ModelMapper mapper;
 
     public MapsClient(WebClient maps,
-            ModelMapper mapper) {
+                      ModelMapper mapper) {
         this.client = maps;
         this.mapper = mapper;
     }
@@ -36,7 +36,7 @@ public class MapsClient {
             Address address = client
                     .get()
                     .uri(uriBuilder -> uriBuilder
-                            .path("http://localhost:9191/maps/")
+                            .path("/maps/")
                             .queryParam("lat", location.getLat())
                             .queryParam("lon", location.getLon())
                             .build()

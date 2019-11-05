@@ -64,6 +64,7 @@ public class CarService {
             car.setPrice(price);
             Location location = mapsClient.getAddress(car.getLocation());
             car.setLocation(location);
+            //System.out.println("in Car service");
         }else {
             throw new CarNotFoundException("Car Not found");
         }
