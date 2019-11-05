@@ -65,6 +65,7 @@ class CarController {
          *   Update the first line as part of the above implementing.
          */
         Car car = carService.findById(id);
+
         System.out.println("in car controller");
         return assembler.toResource(car);
     }
