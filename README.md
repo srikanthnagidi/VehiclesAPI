@@ -1,4 +1,4 @@
-# ND035-P02-VehiclesAPI-Project
+VehiclesAPI-Project
 
 Project repository for JavaND Project 2, where students implement a Vehicles API using Java and Spring Boot that can communicate with separate location and pricing services.
 
