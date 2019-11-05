@@ -25,6 +25,9 @@ public class PricingControllerIntegrationTest {
     @Autowired
     private TestRestTemplate testRestTemplate;
 
+    /*
+    Checks if address is returned for a given random number between 1 to 20
+     */
     @Test
     public void getPrice(){
         ResponseEntity<String> responseEntity = testRestTemplate.getForEntity("http://localhost:" + port + "/services/price?vehicleId=" + 2, String.class);
