@@ -6,13 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.google.gson.Gson;
 import com.udacity.vehicles.client.maps.MapsClient;
 import com.udacity.vehicles.client.prices.PriceClient;
 import com.udacity.vehicles.domain.Condition;
@@ -21,6 +20,8 @@ import com.udacity.vehicles.domain.car.Car;
 import com.udacity.vehicles.domain.car.Details;
 import com.udacity.vehicles.domain.manufacturer.Manufacturer;
 import com.udacity.vehicles.service.CarService;
+
+import java.io.StringReader;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Collections;
@@ -37,7 +38,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonWriter;
+
 
 /**
  * Implements testing of the CarController class.
@@ -141,6 +154,24 @@ public class CarControllerTest {
         verify(carService, times(1)).delete(1L);
     }
 
+    @Test
+    public void updateCar() throws Exception{
+        this.createCar();
+        Car car = this.getCar();
+        car.setLocation(new Location(40.0, 10.2));
+        JsonObject json = jsonFromString(new Gson().toJson(car));
+        mvc.perform(put("/cars/{id}", 1L).contentType(contentType).content(serialize(json)))
+                .andExpect(status().isOk()).andExpect(content().contentType(contentType)).
+                andExpect(content().json("{}"));
+    }
+    private static JsonObject jsonFromString(String jsonObjectStr) {
+
+        JsonReader jsonReader = Json.createReader(new StringReader(jsonObjectStr));
+        JsonObject object = jsonReader.readObject();
+        jsonReader.close();
+
+        return object;
+    }
     /**
      * Creates an example Car object for use in testing.
      * @return an example Car object
@@ -163,5 +194,15 @@ public class CarControllerTest {
         car.setDetails(details);
         car.setCondition(Condition.USED);
         return car;
+    }
+
+    private byte[] serialize(JsonObject object) throws IOException {
+        try (ByteArrayOutputStream oos = new ByteArrayOutputStream();
+             JsonWriter writer = Json.createWriter(oos)) {
+            writer.writeObject(object);
+            writer.close();
+            oos.flush();
+            return oos.toByteArray();
+        }
     }
 }

@@ -6,6 +6,8 @@ import com.udacity.vehicles.client.prices.PriceClient;
 import com.udacity.vehicles.domain.Location;
 import com.udacity.vehicles.domain.car.Car;
 import com.udacity.vehicles.domain.car.CarRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,15 +49,15 @@ public class CarService {
      * @return the requested car's information, including location and price
      */
     public Car findById(Long id) {
-        Car car = new Car();
         Optional<Car> optionalCar = repository.findById(id);
         if (optionalCar.isPresent()){
             String price = priceClient.getPrice(id);
-            car = optionalCar.get();
+            Car car = optionalCar.get();
             car.setPrice(price);
             Location location = mapsClient.getAddress(car.getLocation());
             car.setLocation(location);
             //System.out.println("in Car service");
+            return car;
         }else {
             throw new CarNotFoundException("Car Not found");
         }
@@ -67,7 +69,6 @@ public class CarService {
          * Note: The Location class file also uses @transient for the address,
          * meaning the Maps service needs to be called each time for the address.
          */
-        return car;
     }
 
     /**
@@ -81,6 +82,8 @@ public class CarService {
                     .map(carToBeUpdated -> {
                         carToBeUpdated.setDetails(car.getDetails());
                         carToBeUpdated.setLocation(car.getLocation());
+                        carToBeUpdated.setCondition(car.getCondition());
+                        carToBeUpdated.setModifiedAt(LocalDateTime.now());
                         return repository.save(carToBeUpdated);
                     }).orElseThrow(CarNotFoundException::new);
         }
