@@ -1,17 +1,7 @@
 package com.udacity.vehicles.api;
 
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import com.google.gson.Gson;
+import com.udacity.vehicles.VehiclesApiApplication;
 import com.udacity.vehicles.client.maps.MapsClient;
 import com.udacity.vehicles.client.prices.PriceClient;
 import com.udacity.vehicles.domain.Condition;
@@ -20,13 +10,10 @@ import com.udacity.vehicles.domain.car.Car;
 import com.udacity.vehicles.domain.car.Details;
 import com.udacity.vehicles.domain.manufacturer.Manufacturer;
 import com.udacity.vehicles.service.CarService;
-
-import java.io.StringReader;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
@@ -34,22 +21,28 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**
@@ -79,7 +72,17 @@ public class CarControllerTest {
     /**
      * Creates pre-requisites for testing, such as an example car.
      */
-    private MediaType contentType = new MediaType("application", "hal+json", Charset.forName("UTF-8"));
+    private MediaType contentType = new MediaType("application", "hal+json", StandardCharsets.UTF_8);
+
+    private static JsonObject jsonFromString(String jsonObjectStr) {
+
+        JsonReader jsonReader = Json.createReader(new StringReader(jsonObjectStr));
+        JsonObject object = jsonReader.readObject();
+        jsonReader.close();
+
+        return object;
+    }
+
     @Before
     public void setup() {
         Car car = getCar();
@@ -91,9 +94,11 @@ public class CarControllerTest {
 
     /**
      * Tests for successful creation of new car in the system
+     *
      * @throws Exception when car creation fails in the system
      */
     @Test
+    @Order(1)
     public void createCar() throws Exception {
         Car car = getCar();
         mvc.perform(
@@ -106,11 +111,12 @@ public class CarControllerTest {
 
     /**
      * Tests if the read operation appropriately returns a list of vehicles.
+     *
      * @throws Exception if the read operation of the vehicle list fails
      */
     @Test
+    @Order(2)
     public void listCars() throws Exception {
-        this.createCar();
         mvc.perform(get("/cars")).andExpect(status().isOk())
                 .andExpect(content()
                         .contentType(contentType)).andExpect(content().json("{}"));
@@ -119,11 +125,12 @@ public class CarControllerTest {
 
     /**
      * Tests the read operation for a single car by ID.
+     *
      * @throws Exception if the read operation for a single car fails
      */
     @Test
+    @Order(3)
     public void findCar() throws Exception {
-        this.createCar();
         mvc.perform(get("/cars/1")).andExpect(status().isOk())
                 .andExpect(content().contentType(contentType)).andExpect(content().json("{}"));
         verify(carService, times(1)).findById(1L);
@@ -131,9 +138,11 @@ public class CarControllerTest {
 
     /**
      * Tests the deletion of a single car by ID.
+     *
      * @throws Exception if the delete operation of a vehicle fails
      */
     @Test
+    @Order(5)
     public void deleteCar() throws Exception {
         this.createCar();
         mvc.perform(delete("/cars/1")).andExpect(status().is2xxSuccessful());
@@ -141,8 +150,8 @@ public class CarControllerTest {
     }
 
     @Test
-    public void updateCar() throws Exception{
-        this.createCar();
+    @Order(4)
+    public void updateCar() throws Exception {
         Car car = this.getCar();
         car.setLocation(new Location(40.0, 10.2));
         JsonObject json = jsonFromString(new Gson().toJson(car));
@@ -150,16 +159,10 @@ public class CarControllerTest {
                 .andExpect(status().isOk()).andExpect(content().contentType(contentType)).
                 andExpect(content().json("{}"));
     }
-    private static JsonObject jsonFromString(String jsonObjectStr) {
 
-        JsonReader jsonReader = Json.createReader(new StringReader(jsonObjectStr));
-        JsonObject object = jsonReader.readObject();
-        jsonReader.close();
-
-        return object;
-    }
     /**
      * Creates an example Car object for use in testing.
+     *
      * @return an example Car object
      */
     private Car getCar() {
